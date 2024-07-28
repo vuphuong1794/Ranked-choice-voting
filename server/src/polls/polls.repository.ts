@@ -18,7 +18,7 @@ export class PollsRepository {
 
   constructor(
     ConfigService: ConfigService,
-    //dung inject để cho phép truy cập tới redisclient
+    //dung inject để cho phép truy cập tới redisClient
     @Inject(IORedisKey) private readonly redisClient: Redis,
   ) {
     // thoi gian ton tai cua cau hoi

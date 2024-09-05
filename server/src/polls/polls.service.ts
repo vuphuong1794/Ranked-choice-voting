@@ -74,6 +74,7 @@ export class PollsService {
     this.logger.debug(
       `Rejoining poll with ID: ${fields.pollID} for user with ID: ${fields.userID} with name: ${fields.name}`,
     );
+    //thêm thành viên
     const joinedPoll = await this.PollsRepository.AddParticipant(fields);
 
     return joinedPoll;

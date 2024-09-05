@@ -28,6 +28,7 @@ export class PollsController {
     const result = await this.pollsService.joinPoll(JoinPollDto);
     return result;
   }
+
   @UseGuards(ControllerAuthGuard)
   @Post('/rejoin')
   async rejoin(@Req() request: RequestWithAuth) {

@@ -25,7 +25,7 @@ export class PollsRepository {
     this.ttl = ConfigService.get('POLL_DURATION');
   }
 
-  //tao ra poll moi (userID, pollID duoc tao o create poll service, con nhung cai con lai lay tu bài viết đầu tiên đến poll controller nên dc lấy từ API)
+  //tao ra poll moi (userID, pollID duoc tao o create poll service, con nhung cai con lai lay tu req.body API CreatePoll)
   async CreatePoll({
     pollID,
     topic,

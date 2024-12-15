@@ -1,4 +1,3 @@
-import { defineConfig } from 'vite';
 import { PollsRepository } from './polls.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { CreatePollFields, JoinPollFields, RejoinPollFields } from './types';

@@ -3,6 +3,7 @@ import { INestApplicationContext, Logger } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
 
+//pass a dynamic port to the websockets gateway 
 export class SocketIOAdapter extends IoAdapter {
   private readonly logger = new Logger(SocketIOAdapter.name);
   constructor(

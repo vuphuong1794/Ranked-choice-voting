@@ -8,7 +8,7 @@ import {
 import { IORedisKey } from 'src/redis.module';
 import { Redis } from 'ioredis';
 import { CreatePollData, AddParticipantData } from './types';
-import { Poll } from 'shared';
+import { Poll } from '../../../shared';
 
 @Injectable() //cho phép cung cấp kho lưu trữ này dưới dạng dịch vụ hoặc nhà cung cấp cho poll.module
 export class PollsRepository {

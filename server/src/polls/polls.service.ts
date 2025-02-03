@@ -21,6 +21,7 @@ export class PollsService {
       userID,
     });
 
+    //create an accessToken based off of pollID and userID
     this.logger.debug(
       `Creating token string for pollID: ${createdPoll.id} and userID: ${userID}`,
     );

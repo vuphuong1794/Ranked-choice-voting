@@ -25,6 +25,8 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   private readonly logger = new Logger(PollsGateway.name);
   constructor(private readonly pollsService: PollsService) {}
 
+  // Decorator to get access to the WebSocket server instance
+  // io will be a Namespace instance that lets us emit events to all connected clients
   @WebSocketServer() io: Namespace;
   // Hook được gọi sau khi Gateway khởi tạo
   afterInit(): void {

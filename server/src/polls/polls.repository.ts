@@ -6,7 +6,7 @@ import { IORedisKey } from 'src/redis.module';
 import { AddParticipantData, CreatePollData } from './types';
 import { Poll } from 'shared';
 
-@Injectable()
+@Injectable()//cho phép cung cấp kho lưu trữ này dưới dạng dịch vụ hoặc nhà cung cấp cho poll.module
 export class PollsRepository {
   // to use time-to-live from configuration
   private readonly ttl: string;
@@ -14,11 +14,14 @@ export class PollsRepository {
 
   constructor(
     configService: ConfigService,
+    //dung inject để cho phép truy cập tới redisClient
     @Inject(IORedisKey) private readonly redisClient: Redis,
   ) {
+    // thoi gian ton tai cua cau hoi
     this.ttl = configService.get('POLL_DURATION');
   }
 
+  //tao ra poll moi (userID, pollID duoc tao o create poll service, con nhung cai con lai lay tu req.body API CreatePoll)
   async createPoll({
     votesPerVoter,
     topic,
@@ -30,6 +33,7 @@ export class PollsRepository {
       topic,
       votesPerVoter,
       participants: {},
+       //thực hiện lời hứa ở poll-types
       adminID: userID,
     };
 
@@ -39,15 +43,17 @@ export class PollsRepository {
       }`,
     );
 
+    //tạo key để lưu vào redis
     const key = `polls:${pollID}`;
 
+     //set du lieu cho key bang redisClient
     try {
       await this.redisClient
         .multi([
           ['send_command', 'JSON.SET', key, '.', JSON.stringify(initialPoll)],
           ['expire', key, this.ttl],
         ])
-        .exec();
+        .exec(); //thực thi
       return initialPoll;
     } catch (e) {
       this.logger.error(

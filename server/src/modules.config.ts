@@ -3,6 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from './redis.module';
 import { JwtModule } from '@nestjs/jwt';
 
+//config module: truy cap vao cau hinh, tinh nang vi du: .env thong qua con configService
+//redis module: cung cap quyen truy cap vao IO redis Client
+//jwt module: sign, verifytoken
 export const redisModule = RedisModule.registerAsync({
   imports: [ConfigModule],
   useFactory: async (configService: ConfigService) => {

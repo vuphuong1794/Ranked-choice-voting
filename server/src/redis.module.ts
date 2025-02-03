@@ -4,7 +4,6 @@ import IORedis, { Redis, RedisOptions } from 'ioredis';
 
 export const IORedisKey = 'IORedis';
 
-//định nghĩa kiểu trả về cho useFactory
 type RedisModuleOptions = {
   connectionOptions: RedisOptions;
   onClientReady?: (client: Redis) => void;
@@ -37,6 +36,7 @@ export class RedisModule {
       },
       inject,
     };
+
     return {
       module: RedisModule,
       imports,

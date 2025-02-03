@@ -1,1 +1,1 @@
-export * from './polls-types';
+export * from './poll-types';

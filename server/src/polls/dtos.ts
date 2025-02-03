@@ -1,9 +1,8 @@
-import { IsInt, IsNotEmpty, IsString, Length, Max, Min } from 'class-validator';
+import { Length, IsInt, IsString, Min, Max } from 'class-validator';
 
 export class CreatePollDto {
   @IsString()
   @Length(1, 100)
-  @IsNotEmpty()
   topic: string;
 
   @IsInt()
@@ -18,12 +17,10 @@ export class CreatePollDto {
 
 export class JoinPollDto {
   @IsString()
-  @IsNotEmpty()
   @Length(6, 6)
   pollID: string;
 
   @IsString()
-  @IsNotEmpty()
   @Length(1, 25)
   name: string;
 }

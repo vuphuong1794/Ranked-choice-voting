@@ -1,44 +1,35 @@
+import { Inject, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
-import { IORedisKey } from 'src/redis.module';
 import { Redis } from 'ioredis';
-import { CreatePollData, AddParticipantData } from './types';
-import { Poll } from '../../../shared';
+import { IORedisKey } from 'src/redis.module';
+import { AddParticipantData, CreatePollData } from './types';
+import { Poll } from 'shared';
 
-@Injectable() //cho phép cung cấp kho lưu trữ này dưới dạng dịch vụ hoặc nhà cung cấp cho poll.module
+@Injectable()
 export class PollsRepository {
   // to use time-to-live from configuration
   private readonly ttl: string;
   private readonly logger = new Logger(PollsRepository.name);
 
   constructor(
-    ConfigService: ConfigService,
-    //dung inject để cho phép truy cập tới redisClient
+    configService: ConfigService,
     @Inject(IORedisKey) private readonly redisClient: Redis,
   ) {
-    // thoi gian ton tai cua cau hoi
-    this.ttl = ConfigService.get('POLL_DURATION');
+    this.ttl = configService.get('POLL_DURATION');
   }
 
-  //tao ra poll moi (userID, pollID duoc tao o create poll service, con nhung cai con lai lay tu req.body API CreatePoll)
-  async CreatePoll({
-    pollID,
-    topic,
+  async createPoll({
     votesPerVoter,
+    topic,
+    pollID,
     userID,
   }: CreatePollData): Promise<Poll> {
-    //thực hiện lời hứa ở poll-types
     const initialPoll = {
       id: pollID,
       topic,
       votesPerVoter,
       participants: {},
-      //khởi tạo với chưa có người tham gia nào
       adminID: userID,
     };
 
@@ -47,17 +38,16 @@ export class PollsRepository {
         this.ttl
       }`,
     );
-    //tạo key để lưu vào redis
+
     const key = `polls:${pollID}`;
 
-    //set du lieu cho key bang redisClient
     try {
       await this.redisClient
         .multi([
           ['send_command', 'JSON.SET', key, '.', JSON.stringify(initialPoll)],
           ['expire', key, this.ttl],
         ])
-        .exec(); //thực thi
+        .exec();
       return initialPoll;
     } catch (e) {
       this.logger.error(
@@ -71,6 +61,7 @@ export class PollsRepository {
     this.logger.log(`Attempting to get poll with: ${pollID}`);
 
     const key = `polls:${pollID}`;
+
     try {
       const currentPoll = await this.redisClient.send_command(
         'JSON.GET',
@@ -83,13 +74,15 @@ export class PollsRepository {
       // if (currentPoll?.hasStarted) {
       //   throw new BadRequestException('The poll has already started');
       // }
+
       return JSON.parse(currentPoll);
     } catch (e) {
-      this.logger.error(`Failed to get pollId ${pollID}`);
+      this.logger.error(`Failed to get pollID ${pollID}`);
       throw e;
     }
   }
-  async AddParticipant({
+
+  async addParticipant({
     pollID,
     userID,
     name,

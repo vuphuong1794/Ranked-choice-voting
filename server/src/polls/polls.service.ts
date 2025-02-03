@@ -1,27 +1,26 @@
-import { PollsRepository } from './polls.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { CreatePollFields, JoinPollFields, RejoinPollFields } from './types';
-import { createPollID, createUserID } from 'src/ids';
 import { JwtService } from '@nestjs/jwt';
+import { createPollID, createUserID } from 'src/ids';
+import { PollsRepository } from './polls.repository';
+import { CreatePollFields, JoinPollFields, RejoinPollFields } from './types';
 
 @Injectable()
 export class PollsService {
+  private readonly logger = new Logger(PollsService.name);
   constructor(
-    private readonly PollsRepository: PollsRepository,
+    private readonly pollsRepository: PollsRepository,
     private readonly jwtService: JwtService,
   ) {}
-  private readonly logger = new Logger(PollsService.name);
   async createPoll(fields: CreatePollFields) {
     const pollID = createPollID();
     const userID = createUserID();
 
-    const createdPoll = await this.PollsRepository.CreatePoll({
+    const createdPoll = await this.pollsRepository.createPoll({
       ...fields,
-      userID,
       pollID,
+      userID,
     });
 
-    //create an accessToken based off of pollID and userID
     this.logger.debug(
       `Creating token string for pollID: ${createdPoll.id} and userID: ${userID}`,
     );
@@ -35,6 +34,7 @@ export class PollsService {
         subject: userID,
       },
     );
+
     return {
       poll: createdPoll,
       accessToken: signedString,
@@ -47,9 +47,9 @@ export class PollsService {
     this.logger.debug(
       `Fetching poll with ID: ${fields.pollID} for user with ID: ${userID}`,
     );
-    const joinedPoll = await this.PollsRepository.getPoll(fields.pollID);
 
-    //create access Token
+    const joinedPoll = await this.pollsRepository.getPoll(fields.pollID);
+
     this.logger.debug(
       `Creating token string for pollID: ${joinedPoll.id} and userID: ${userID}`,
     );
@@ -63,6 +63,7 @@ export class PollsService {
         subject: userID,
       },
     );
+
     return {
       poll: joinedPoll,
       accessToken: signedString,
@@ -73,8 +74,8 @@ export class PollsService {
     this.logger.debug(
       `Rejoining poll with ID: ${fields.pollID} for user with ID: ${fields.userID} with name: ${fields.name}`,
     );
-    //thêm thành viên
-    const joinedPoll = await this.PollsRepository.AddParticipant(fields);
+
+    const joinedPoll = await this.pollsRepository.addParticipant(fields);
 
     return joinedPoll;
   }

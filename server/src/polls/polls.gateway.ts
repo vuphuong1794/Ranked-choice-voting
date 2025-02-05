@@ -11,15 +11,15 @@ import { PollsService } from './polls.service';
 
 @WebSocketGateway({ 
   namespace: 'polls',
-  beforeConnect: (client: Socket, next) => {
-    const token = client.handshake.auth.token;
-    // Validate token here
-    if (!token) {
-      next(new Error('Authentication error'));
-      return;
-    }
-    next();
-  }
+  // beforeConnect: (client: Socket, next) => {
+  //   const token = client.handshake.auth.token;
+  //   // Validate token here
+  //   if (!token) {
+  //     next(new Error('Authentication error'));
+  //     return;
+  //   }
+  //   next();
+  // }
 })
 export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(PollsGateway.name);
@@ -39,6 +39,8 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
 
     this.logger.log(`Client connected: ${client.id}`);
     this.logger.debug(`Total clients: ${sockets.size}`);
+
+    this.io.emit('hello',`from ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {

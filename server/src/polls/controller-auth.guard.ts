@@ -5,7 +5,6 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
-
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -19,12 +18,12 @@ export class ControllerAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     //request toi duoc dung la restAPI
     const request = context.switchToHttp().getRequest();
-    //kiem tra token
     this.logger.debug(
       `checking for auth auth token on request body`,
       request.body,
     );
 
+    //kiem tra token
     const { accessToken } = request.body;
     try {
       const payload = this.jwtService.verify(accessToken);

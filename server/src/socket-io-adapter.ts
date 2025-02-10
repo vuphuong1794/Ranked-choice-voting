@@ -3,14 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import {ServerOptions } from 'socket.io';
 
-//pass a dynamic port to the websockets gateway 
+// Custom adapter for Socket.IO to pass a dynamic port to the WebSocket gateway.
 export class SocketIOAdapter extends IoAdapter {
   private readonly logger = new Logger(SocketIOAdapter.name);
   constructor(
     private app: INestApplicationContext,
     private configService: ConfigService,
   ) {
-    super(app);
+    super(app); // Call the base IoAdapter constructor
   }
 
   createIOServer(port: number, options?: ServerOptions) {
@@ -28,10 +28,11 @@ export class SocketIOAdapter extends IoAdapter {
     });
 
     const optionsWithCORS: ServerOptions = {
-      ...options,
-      cors,
+      ...options, // Spread existing options to retain other configurations
+      cors, // Add the custom CORS options
     };
 
+    //create the server with the dynamic port and new options.
     return super.createIOServer(port, optionsWithCORS);
   }
 }

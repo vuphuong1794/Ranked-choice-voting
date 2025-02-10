@@ -14,10 +14,12 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      `http://localhost:${clientPort}`,
-      new RegExp(`/^http:\/\/192\.168\.1\.([1-9]|[1-9]\d):${clientPort}$/`),
+      `http://localhost:${clientPort}`, // Allow localhost client on the dynamic port
+      new RegExp(`/^http:\/\/192\.168\.1\.([1-9]|[1-9]\d):${clientPort}$/`), // Allow any local IP address within the range
     ],
   });
+
+    // Use your custom SocketIOAdapter for WebSocket handling
   app.useWebSocketAdapter(new SocketIOAdapter(app, configService));
 
   await app.listen(port);

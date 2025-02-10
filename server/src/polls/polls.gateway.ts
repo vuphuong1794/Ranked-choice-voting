@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Namespace, Server, Socket } from 'socket.io';
 import { PollsService } from './polls.service';
+import { SocketWithAuth } from './types';
 
 @WebSocketGateway({ 
   namespace: 'polls',
@@ -34,19 +35,21 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   // Log khi có client kết nối
-  handleConnection(client: Socket) {
+  handleConnection(client: SocketWithAuth) {
     const sockets = this.io.sockets;
-
-    this.logger.log(`Client connected: ${client.id}`);
-    this.logger.debug(`Total clients: ${sockets.size}`);
+    this.logger.debug(`Socket connected with userID: ${client.userID}, pollID: ${client.pollID}, and name: "${client.name}"`);
+    
+    this.logger.log(`WS Client connected: ${client.id}`);
+    this.logger.debug(`Number of connected sockets: ${sockets.size}`);
 
     this.io.emit('hello',`from ${client.id}`);
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: SocketWithAuth) {
     const sockets = this.io.sockets;
+    this.logger.debug(`Socket disconnected with userID: ${client.userID}, pollID: ${client.pollID}, and name: "${client.name}"`);
     
-    this.logger.log(`Client disconnected: ${client.id}`);
-    this.logger.debug(`Total clients: ${sockets.size}`);
+    this.logger.log(`WS Client disconnected: ${client.id}`);
+    this.logger.debug(`Number of connected sockets: ${sockets.size}`);
   }
 }

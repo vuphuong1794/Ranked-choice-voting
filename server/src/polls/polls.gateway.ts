@@ -1,4 +1,4 @@
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -11,9 +11,10 @@ import {
 import { Namespace, Server, Socket } from 'socket.io';
 import { PollsService } from './polls.service';
 import { SocketWithAuth } from './types';
-import { WsBadRequestException } from 'src/exceptions/ws-exceptions';
+import { WsCatchAllFilter } from 'src/exceptions/ws-catch-all-filter';
 
 @UsePipes(new ValidationPipe()) // Validate incoming data with the ValidationPipe
+@UseFilters(new WsCatchAllFilter()) // Catch all exceptions and emit them to the client
 @WebSocketGateway({ 
   namespace: 'polls',
   // beforeConnect: (client: Socket, next) => {
@@ -62,6 +63,7 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   //lắng nghe (subscribe) các sự kiện (event) từ WebSocket client
   @SubscribeMessage('test')
   async test() {
-    throw new WsBadRequestException('Invalid empty data');
+    throw new BadRequestException({test: 'test'});
+      ///throw new Error("this iss really bad");
   }
 }

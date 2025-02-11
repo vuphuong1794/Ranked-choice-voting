@@ -1,6 +1,6 @@
 import { WsException } from "@nestjs/websockets";
 
-// custom exception types for WebSocket exceptions
+// Define the types of exceptions that can be thrown    
 type WsExceptionType = 'BadRequest' | 'Unauthorized' | 'Unknown';
 
 export class WsTypeException extends WsException{

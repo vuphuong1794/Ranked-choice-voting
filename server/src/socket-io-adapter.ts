@@ -47,6 +47,7 @@ export class SocketIOAdapter extends IoAdapter {
 
 const createTokenMiddleware = 
   (JwtService: JwtService, logger: Logger) => (socket: SocketWithAuth, next) => {
+    //for postman testing support, fallback to token header
     const token = socket.handshake.auth.token || socket.handshake.headers['token'];
 
     logger.debug(`validating auth token before connection ${token}`);

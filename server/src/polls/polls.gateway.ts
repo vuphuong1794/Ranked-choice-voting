@@ -1,15 +1,19 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
   OnGatewayInit,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  SubscribeMessage,
+  WsException,
 } from '@nestjs/websockets';
 import { Namespace, Server, Socket } from 'socket.io';
 import { PollsService } from './polls.service';
 import { SocketWithAuth } from './types';
+import { WsBadRequestException } from 'src/exceptions/ws-exceptions';
 
+@UsePipes(new ValidationPipe()) // Validate incoming data with the ValidationPipe
 @WebSocketGateway({ 
   namespace: 'polls',
   // beforeConnect: (client: Socket, next) => {
@@ -51,5 +55,13 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     
     this.logger.log(`WS Client disconnected: ${client.id}`);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
+  }
+
+
+  // Decorator để xử lý event từ client
+  //lắng nghe (subscribe) các sự kiện (event) từ WebSocket client
+  @SubscribeMessage('test')
+  async test() {
+    throw new WsBadRequestException('Invalid empty data');
   }
 }

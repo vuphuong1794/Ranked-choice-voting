@@ -8,5 +8,5 @@ export interface Poll {
   votesPerVoter: number;
   participants: Participants;
   adminID: string;
-  
+  hasStarted: boolean;
 }

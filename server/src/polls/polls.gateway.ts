@@ -1,4 +1,4 @@
-import { BadRequestException, Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Logger, UseFilters, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -7,25 +7,28 @@ import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WsException,
+  MessageBody,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Namespace, Server, Socket } from 'socket.io';
 import { PollsService } from './polls.service';
 import { SocketWithAuth } from './types';
 import { WsCatchAllFilter } from 'src/exceptions/ws-catch-all-filter';
+import { GatewayAdminGuard } from './gateway-admin-gaurd';
 
 @UsePipes(new ValidationPipe()) // Validate incoming data with the ValidationPipe
 @UseFilters(new WsCatchAllFilter()) // Catch all exceptions and emit them to the client
 @WebSocketGateway({ 
   namespace: 'polls',
-  // beforeConnect: (client: Socket, next) => {
-  //   const token = client.handshake.auth.token;
-  //   // Validate token here
-  //   if (!token) {
-  //     next(new Error('Authentication error'));
-  //     return;
-  //   }
-  //   next();
-  // }
+   beforeConnect: (client: Socket, next) => {
+     const token = client.handshake.auth.token;
+     // Validate token here
+     if (!token) {
+       next(new Error('Authentication error'));
+       return;
+     }
+     next();
+   }
 })
 export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(PollsGateway.name);
@@ -40,30 +43,71 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   // Log khi có client kết nối
-  handleConnection(client: SocketWithAuth) {
+  async handleConnection(client: SocketWithAuth) {
     const sockets = this.io.sockets;
-    this.logger.debug(`Socket connected with userID: ${client.userID}, pollID: ${client.pollID}, and name: "${client.name}"`);
-    
-    this.logger.log(`WS Client connected: ${client.id}`);
+
+    this.logger.debug(
+      `Socket connected with userID: ${client.userID}, pollID: ${client.pollID}, and name: "${client.name}"`,
+    );
+
+    this.logger.log(`WS Client with id: ${client.id} connected!`);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
 
-    this.io.emit('hello',`from ${client.id}`);
+    const roomName = client.pollID;
+    await client.join(roomName);
+
+    const connectedClients = this.io.adapter.rooms?.get(roomName)?.size ?? 0;
+
+    this.logger.debug(
+      `userID: ${client.userID} joined room with name: ${roomName}`,
+    );
+    this.logger.debug(
+      `Total clients connected to room '${roomName}': ${connectedClients}`,
+    );
+
+    const updatedPoll = await this.pollsService.addParticipant({
+      pollID: client.pollID,
+      userID: client.userID,
+      name: client.name,
+    });
+
+    this.io.to(roomName).emit('poll_updated', updatedPoll);
   }
 
-  handleDisconnect(client: SocketWithAuth) {
+  async handleDisconnect(client: SocketWithAuth) {
     const sockets = this.io.sockets;
-    this.logger.debug(`Socket disconnected with userID: ${client.userID}, pollID: ${client.pollID}, and name: "${client.name}"`);
-    
-    this.logger.log(`WS Client disconnected: ${client.id}`);
+
+    const { pollID, userID } = client;
+    const updatedPoll = await this.pollsService.removeParticipant(
+      pollID,
+      userID,
+    );
+
+    const roomName = client.pollID;
+    const clientCount = this.io.adapter.rooms?.get(roomName)?.size ?? 0;
+
+    this.logger.log(`Disconnected socket id: ${client.id}`);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
+    this.logger.debug(
+      `Total clients connected to room '${roomName}': ${clientCount}`,
+    );
+
+    // updatedPoll could be undefined if the the poll already started
+    // in this case, the socket is disconnect, but no the poll state
+    if (updatedPoll) {
+      this.io.to(pollID).emit('poll_updated', updatedPoll);
+    }
   }
 
+  @UseGuards(GatewayAdminGuard)
+  @SubscribeMessage('remove_participant')
+  async removeParticipant(@MessageBody('id') id: string, @ConnectedSocket() client: SocketWithAuth) 
+  {
+    this.logger.debug(`Attempting to remove participant with ID: ${id} from poll with ID: ${client.pollID}`);
 
-  // Decorator để xử lý event từ client
-  //lắng nghe (subscribe) các sự kiện (event) từ WebSocket client
-  @SubscribeMessage('test')
-  async test() {
-    throw new BadRequestException({test: 'test'});
-      ///throw new Error("this iss really bad");
+    const updatedPoll = await this.pollsService.removeParticipant(client.pollID, id);
+
+    this.io.to(client.pollID).emit('poll_update', updatedPoll);
   }
+    
 }

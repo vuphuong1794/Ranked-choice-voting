@@ -1,6 +1,6 @@
 import { ArgumentsHost, BadRequestException, Catch, ExceptionFilter } from "@nestjs/common";
 import { SocketWithAuth } from "src/polls/types";
-import { WsBadRequestException, WsUnknownException } from "./ws-exceptions";
+import { WsBadRequestException, WsTypeException, WsUnknownException } from "./ws-exceptions";
 
 @Catch() //catch all exceptions happening in the gateway and filter them in ws-exceptions.ts and send them to the client
 export class WsCatchAllFilter implements ExceptionFilter {
@@ -25,6 +25,12 @@ export class WsCatchAllFilter implements ExceptionFilter {
             // Gửi lỗi về phía client thông qua sự kiện 'exception'
             socket.emit('exception', wsException.getError());
             return;  
+        }
+
+        if(exception instanceof WsTypeException){
+            // Gửi lỗi về phía client thông qua sự kiện 'exception'
+            socket.emit('exception', exception.getError());
+            return;
         }
 
         // Nếu lỗi không phải BadRequestException, chuyển nó thành WsUnknownException

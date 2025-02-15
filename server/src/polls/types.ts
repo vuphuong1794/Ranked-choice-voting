@@ -19,6 +19,12 @@ export type RejoinPollFields = {
   name: string;
 };
 
+export type AddParticipantFields = {
+  pollID: string;
+  userID: string;
+  name: string;
+};
+
 //repository types
 export type CreatePollData = {
   pollID: string;
@@ -35,7 +41,7 @@ export type AddParticipantData = {
 
 //guard type
 //trich xuat tu token
-type AuthPayload = {
+export type AuthPayload = {
   userID: string;
   pollID: string;
   name: string;

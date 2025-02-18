@@ -56,6 +56,8 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     const roomName = client.pollID;
     await client.join(roomName);
 
+        // Get count of clients in this poll's room
+    // Using optional chaining (?.) and nullish coalescing (??) to safely handle undefined
     const connectedClients = this.io.adapter.rooms?.get(roomName)?.size ?? 0;
 
     this.logger.debug(
@@ -65,12 +67,14 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       `Total clients connected to room '${roomName}': ${connectedClients}`,
     );
 
+    
     const updatedPoll = await this.pollsService.addParticipant({
       pollID: client.pollID,
       userID: client.userID,
       name: client.name,
     });
 
+    // Add participant to the poll in the database
     this.io.to(roomName).emit('poll_updated', updatedPoll);
   }
 
@@ -84,6 +88,9 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     );
 
     const roomName = client.pollID;
+
+    // Get count of clients in this poll's room
+    // Using optional chaining (?.) and nullish coalescing (??) to safely handle undefined
     const clientCount = this.io.adapter.rooms?.get(roomName)?.size ?? 0;
 
     this.logger.log(`Disconnected socket id: ${client.id}`);

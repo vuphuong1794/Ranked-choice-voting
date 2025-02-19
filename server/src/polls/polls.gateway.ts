@@ -56,7 +56,7 @@ export class PollsGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     const roomName = client.pollID;
     await client.join(roomName);
 
-        // Get count of clients in this poll's room
+    // Get count of clients in this poll's room
     // Using optional chaining (?.) and nullish coalescing (??) to safely handle undefined
     const connectedClients = this.io.adapter.rooms?.get(roomName)?.size ?? 0;
 

@@ -28,8 +28,8 @@ export type AddParticipantFields = {
 
 export type AddNominationFields = {
   pollID: string;
-  nominationID: string;
-  nomination: Nomination;
+  userID: string;
+  text: string;
 };
 
 //repository types

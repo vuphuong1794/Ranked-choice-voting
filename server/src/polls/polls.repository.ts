@@ -128,7 +128,9 @@ export class PollsRepository {
       this.logger.error(
         `Failed to add a participant with userID/name: ${userID}/${name} to pollID: ${pollID}`,
       );
-      throw new InternalServerErrorException(`Failed to add participant with userID/name: ${userID}/${name} to pollID: ${pollID}`);
+      throw new InternalServerErrorException(
+        `Failed to add participant with userID/name: ${userID}/${name} to pollID: ${pollID}`,
+      );
     }
   }
 
@@ -183,11 +185,7 @@ export class PollsRepository {
     }
   }
 
-  async removeNomination({
-    pollID,
-    nominationID,
-    nomination,
-  }: AddNominationData): Promise<Poll> {
+  async removeNomination(pollID: string, nominationID: string): Promise<Poll> {
     this.logger.log(
       `Attempting to remove nomination with ID: ${nominationID} from poll with ID: ${pollID}`,
     );
@@ -200,12 +198,12 @@ export class PollsRepository {
       return this.getPoll(pollID);
     } catch (e) {
       this.logger.error(
-        `Failed to remove nomination with nominationID/text: ${nominationID}/${nomination.text} from pollID: ${pollID}`,
+        `Failed to remove nominationID: ${nominationID} from poll: ${pollID}`,
         e,
       );
 
       throw new InternalServerErrorException(
-        `Failed to remove nomination with nominationID/text: ${nominationID}/${nomination.text} from pollID: ${pollID}`,
+        `Failed to remove nominationID: ${nominationID} from poll: ${pollID}`,
       );
     }
   }

@@ -153,6 +153,7 @@ export class PollsRepository {
     }
   }
 
+  //thêm lựa chọn vào poll
   async addNomination({
     pollID,
     nominationID,
@@ -186,6 +187,7 @@ export class PollsRepository {
     }
   }
 
+  //xoa lua chon trong poll
   async removeNomination(pollID: string, nominationID: string): Promise<Poll> {
     this.logger.log(
       `Attempting to remove nomination with ID: ${nominationID} from poll with ID: ${pollID}`,
@@ -231,6 +233,7 @@ export class PollsRepository {
     }
   }
 
+  //thêm bảng xếp hạng cho người dùng
   async addParticipantRankings({pollID, userID, rankings}: AddParticipantRankingsData): Promise<Poll>{
     this.logger.log(`Attempting to add rankings for user with ID: ${userID} to poll with ID: ${pollID}`, rankings);
 
@@ -238,7 +241,7 @@ export class PollsRepository {
     const rankingsPath = `.rankings.${userID}`;
 
     try {
-      await this.redisClient.send_command('JSON.SET', key, rankingsPath, JSON.stringify(rankings));
+      await this.redisClient.send_command('JSON.SET', key, rankingsPath, JSON.stringify(rankings)); 
       return this.getPoll(pollID);
     } catch (e) {
       this.logger.error(`Failed to add rankings for user with ID: ${userID} to poll with ID: ${pollID}`, e);

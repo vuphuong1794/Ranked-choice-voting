@@ -6,12 +6,12 @@ export const IORedisKey = 'IORedis';
 
 //định nghĩa kiểu trả về cho useFactory
 type RedisModuleOptions = {
-  connectionOptions: RedisOptions;
-  onClientReady?: (client: Redis) => void;
+  connectionOptions: RedisOptions; //Chứa các thông tin cấu hình để kết nối Redis.
+  onClientReady?: (client: Redis) => void; //callback, được gọi khi client kết nối thành công.
 };
 
 type RedisAsyncModuleOptions = {
-  useFactory: (
+  useFactory: ( //Hàm trả về một cấu hình RedisModuleOptions, có thể là async.
     ...args: any[]
   ) => Promise<RedisModuleOptions> | RedisModuleOptions;
 } & Pick<ModuleMetadata, 'imports'> &
@@ -19,13 +19,14 @@ type RedisAsyncModuleOptions = {
 
 @Module({})
 export class RedisModule {
+  // khởi tạo Redis với cấu hình động
   static async registerAsync({
     useFactory,
     imports,
     inject,
   }: RedisAsyncModuleOptions): Promise<DynamicModule> {
     const redisProvider = {
-      provide: IORedisKey,
+      provide: IORedisKey, // Định nghĩa provider với key 'IORedis', để có thể inject vào các service khác.
       useFactory: async (...args) => {
         const { connectionOptions, onClientReady } = await useFactory(...args);
 

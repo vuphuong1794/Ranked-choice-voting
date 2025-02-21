@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Redis } from 'ioredis';
 import { IORedisKey } from 'src/redis.module';
-import { AddNominationData, AddParticipantData, CreatePollData } from './types';
+import { AddNominationData, AddParticipantData, AddParticipantRankingsData, CreatePollData } from './types';
 import { Nomination, Poll } from 'shared';
 
 @Injectable() //cho phép cung cấp kho lưu trữ này dưới dạng dịch vụ hoặc nhà cung cấp cho poll.module
@@ -36,6 +36,7 @@ export class PollsRepository {
       //thực hiện lời hứa ở poll-types
       adminID: userID,
       nominations: {},
+      rankings: {},
       hasStarted: false,
     };
 
@@ -207,4 +208,41 @@ export class PollsRepository {
       );
     }
   }
+
+  async startPoll(pollID: string): Promise<Poll> {
+    this.logger.log(`setting hasStarted for poll: ${pollID}`);
+
+    const key = `polls:${pollID}`;
+
+    try {
+      // Cập nhật giá trị `hasStarted` của poll 
+      await this.redisClient.send_command(
+        'JSON.SET',
+        key,
+        '.hasStarted',
+        JSON.stringify(true),
+      );
+
+      // Lấy lại thông tin của poll sau khi cập nhật và trả về
+      return this.getPoll(pollID);
+    } catch (e) {
+      this.logger.error(`Failed to start poll: ${pollID}`, e);
+      throw new InternalServerErrorException(`The was an error starting the poll`);
+    }
+  }
+
+  async addParticipantRankings({pollID, userID, rankings}: AddParticipantRankingsData): Promise<Poll>{
+    this.logger.log(`Attempting to add rankings for user with ID: ${userID} to poll with ID: ${pollID}`, rankings);
+
+    const key = `polls:${pollID}`;
+    const rankingsPath = `.rankings.${userID}`;
+
+    try {
+      await this.redisClient.send_command('JSON.SET', key, rankingsPath, JSON.stringify(rankings));
+      return this.getPoll(pollID);
+    } catch (e) {
+      this.logger.error(`Failed to add rankings for user with ID: ${userID} to poll with ID: ${pollID}`, e);
+      throw new InternalServerErrorException('There was an error starting the poll');
+    }
+  } 
 }

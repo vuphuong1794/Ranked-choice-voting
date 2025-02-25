@@ -11,6 +11,7 @@ import {
   RejoinPollFields,
   SubmitRankingsFields,
 } from './types';
+import getResults from './getResults';
 
 @Injectable()
 export class PollsService {

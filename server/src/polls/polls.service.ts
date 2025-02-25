@@ -125,7 +125,6 @@ export class PollsService {
     return this.pollsRepository.removeNomination(pollID, nominationID);
   }
 
-
   async startPoll(pollID: string): Promise<Poll> {
     return this.pollsRepository.startPoll(pollID);
   }
@@ -136,7 +135,18 @@ export class PollsService {
     if(!hasPollStarted) {
       throw new BadRequestException('Participant cannot rank until the poll has started');
     }
-
     return this.pollsRepository.addParticipantRankings(rankingsData);
+  }
+
+  async computeResults(pollID: string): Promise<Poll> {
+    const poll = await this.pollsRepository.getPoll(pollID);
+
+    const results = getResults(poll.rankings, poll.nominations, poll.votesPerVoter);
+
+    return this.pollsRepository.addResults(pollID, results);
+  }
+
+  async cancelPoll(pollID: string): Promise<void> {
+    return this.pollsRepository.deletePoll(pollID);
   }
 }

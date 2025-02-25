@@ -25,5 +25,12 @@ export type Poll = {
   adminID: string;
   nominations: Nominations;
   rankings: Rankings;
+  results: Results;
   hasStarted: boolean;
 }
+
+export type Results = Array<{
+  nominationID: NominationID;
+  nominationText: string;
+  score: number;
+}>;

@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Redis } from 'ioredis';
 import { IORedisKey } from 'src/redis.module';
 import { AddNominationData, AddParticipantData, AddParticipantRankingsData, CreatePollData } from './types';
-import { Nomination, Poll } from 'shared';
+import { Nomination, Poll, Results } from 'shared';
 
 @Injectable() //cho phép cung cấp kho lưu trữ này dưới dạng dịch vụ hoặc nhà cung cấp cho poll.module
 export class PollsRepository {
@@ -37,6 +37,7 @@ export class PollsRepository {
       adminID: userID,
       nominations: {},
       rankings: {},
+      results: [],
       hasStarted: false,
     };
 
@@ -248,4 +249,32 @@ export class PollsRepository {
       throw new InternalServerErrorException('There was an error starting the poll');
     }
   } 
+
+  async addResults(pollID: string, results: Results): Promise<Poll> {
+    this.logger.log(`Attempting to add results for poll with ID: ${pollID}`, results);
+
+    const key = `polls:${pollID}`;
+    const resultsPath = '.results';
+
+    try {
+      await this.redisClient.send_command('JSON.SET', key, resultsPath, JSON.stringify(results));
+      return this.getPoll(pollID);
+    } catch (e) {
+      this.logger.error(`Failed to add results for poll with ID: ${pollID}`, e);
+      throw new InternalServerErrorException('There was an error adding the results');
+    }
+  }
+
+  async deletePoll(pollID: string): Promise<void> {
+    this.logger.log(`Attempting to delete poll with ID: ${pollID}`);
+
+    const key = `polls:${pollID}`;
+
+    try {
+      await this.redisClient.send_command('DEL', key);
+    } catch (e) {
+      this.logger.error(`Failed to delete poll with ID: ${pollID}`, e);
+      throw new InternalServerErrorException(`Failed to delete poll with ID: ${pollID}`);
+    }
+  }
 }

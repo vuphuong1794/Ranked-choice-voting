@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import CountSelector from '../components/ui/CountSelector';
-import { actions } from '../state';
+import { actions, AppPage } from '../state';
+import { makeRequest } from '../api';
+import { Poll } from 'shared/poll-types';
 
 const Create: React.FC = () => {
   const [pollTopic, setPollTopic] = useState('');
   const [maxVotes, setMaxVotes] = useState(3);
   const [name, setName] = useState('');
+  const [apiError, setApiError] = useState<string>(''); //Lưu lỗi từ API
   
   const areFieldsValid = (): boolean => {
     if (pollTopic.length < 1 || pollTopic.length > 100) {   
@@ -19,6 +22,39 @@ const Create: React.FC = () => {
     }
     return true
   }
+
+  const handleCreatePoll = async () => {
+    actions.startLoading();
+    setApiError('');
+
+    const {data, error} = await makeRequest<{
+      poll: Poll;
+      accessToken: string;
+
+    }>('/polls', {
+      method: 'POST',
+      body: JSON.stringify({
+        topic: pollTopic,
+        votesPerVoter: maxVotes,
+        name,
+      }),
+    });
+
+    console.log(data, error);
+
+    if(error && error.statusCode === 400) {
+      console.log('400 error', error);
+      setApiError('Name and poll topic are both required!');
+    }else if(error && error.statusCode !== 400) {
+      setApiError(error.messages[0]);
+    }else{
+      actions.initializePoll(data.poll);
+      actions.setPollAccessToken(data.accessToken);
+      actions.setPage(AppPage.WaitingRoom);
+    }
+
+    actions.stopLoading();
+  };
   
   return (
     <div className="flex  flex-col w-full justify-around items-stretch h-full mx-auto max-w-sm">
@@ -37,9 +73,12 @@ const Create: React.FC = () => {
                 <input maxLength={25} onChange={(e)=>setName(e.target.value)} className="box info w-full" />
             </div>
         </div>
+        {apiError && (
+          <p className="text-center text-red-600 font-light mt-8">{apiError}</p>
+        )}
       </div>
       <div className="flex flex-col items-center justify-center">
-        <button className="box btn-orange w-32 my-2" onClick={()=>console.log('create poll')} disabled={!areFieldsValid()}>Create</button>
+        <button className="box btn-orange w-32 my-2" onClick={handleCreatePoll} disabled={!areFieldsValid()}>Create</button>
         <button className="box btn-purple w-32 my-2" onClick={()=> actions.startOver()}>
             Start Over
         </button>

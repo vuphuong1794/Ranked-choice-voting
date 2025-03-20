@@ -5,12 +5,14 @@ import Create from "./pages/Create";
 import Join from "./pages/Join";
 import { AppPage, state } from "./state";
 import { useSnapshot } from "valtio"; //hook giúp component React sử dụng state của Valtio.
+import { WaitingRoom } from "./pages/WaitingRoom";
 
 //routeConfig là một object với key là AppPage, value là component tương ứng.
 const routeConfig = {
     [AppPage.Welcome]: Welcome,
     [AppPage.Create]: Create,
     [AppPage.Join]: Join,
+    [AppPage.WaitingRoom]: WaitingRoom,
 };
 
 const Pages: React.FC = () => {
